@@ -6,24 +6,14 @@ import Rank from './components/Rank/Rank';
 import SignIn from './components/SignIn/SignIn';
 import Register from './components/Register/Register';
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
-import Particles from 'react-particles-js';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition';
+import { URL } from './url';
 
-const particlesOption = {
-  particles: {
-    number:{
-    value: 40,
-    density:{
-      enable:true,
-      value_area: 800
-    }
-  }
- }
-}
+
 const initialState = {
       input: '',
       imageUrl: '',
-      box:{},
+      box:[],
       route: 'signin',
       isSignedIn: false,
       user: {
@@ -44,7 +34,7 @@ class App extends Component {
   
  loadUser = (data) => {
    this.setState({user: {
-    id : data.id,
+    id : data._id,
     name: data.name,
     email:data.email,
     entries: data.entries,
@@ -54,21 +44,24 @@ class App extends Component {
   
 
   claculateFaceLocation = (data) =>{
-    const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
-    const image = document.getElementById('inputImage');
-    const width = Number(image.width);
-    const height = Number(image.height);
-    return {
+    const resultArry = [];
+    data.outputs[0].data.regions.forEach(element => {
+      const clarifaiFace = element.region_info.bounding_box;
+      const image = document.getElementById('inputImage');
+      const width = Number(image.width);
+      const height = Number(image.height);
+    resultArry.push({
       leftCol: clarifaiFace.left_col *width,
       topRow: clarifaiFace.top_row * height,
       rightCol:width - (clarifaiFace.right_col *width),
       bottomRow: height - (clarifaiFace.bottom_row*height)
-    }
+    })
+    });
+    return resultArry;
 
   }
 
   displayFaceBox = (box) =>{
-    //console.log(box);
     this.setState({box: box});
   }
   onInputChange = (event) =>{
@@ -76,7 +69,7 @@ class App extends Component {
   }
   onSubmit = () =>{
     this.setState({imageUrl: this.state.input});
-     fetch('https://fierce-dawn-52592.herokuapp.com/imageurl',{
+     fetch(URL +'imageurl',{
             method: 'post',
             headers : {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -86,7 +79,7 @@ class App extends Component {
       .then(response => response.json())
       .then(response =>{
         if(response){
-          fetch('https://fierce-dawn-52592.herokuapp.com/image',{
+          fetch(URL+ 'image',{
             method: 'put',
             headers : {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -97,9 +90,9 @@ class App extends Component {
           .then(count => {
             this.setState(Object.assign(this.state.user, { entries: count}))
           })
-          .catch(console.log)
+          .catch(err => console.log(err))
         }
-        this.displayFaceBox(this.claculateFaceLocation(response))
+        this.displayFaceBox(this.claculateFaceLocation(response));
       })
       .catch(err => console.log(err));
   }
@@ -108,17 +101,19 @@ class App extends Component {
       this.setState(initialState);
     }else if(route === 'home'){
       this.setState({isSignedIn: true});
+      this.setState({route: route});
+    }else{
+      this.setState({route: route});
     }
-    this.setState({route: route});
   }
 
   render() {
     const {isSignedIn, imageUrl, route, box} = this.state;
   return (
     <div className="App">
-                  <Particles className="particles"
+                  {/* <Particles className="particles"
               params={particlesOption}
-            />
+            /> */}
             <Navigation isSignedIn={isSignedIn} onRouteChange={this.onRouteChange}/>
       {route === 'home' ?
       <div>
@@ -128,7 +123,7 @@ class App extends Component {
         onInputChange = {this.onInputChange} 
         onSubmit = {this.onSubmit}
         />
-        <FaceRecognition box= {box} imageUrl={imageUrl} />
+        <FaceRecognition boxs= {box} imageUrl={imageUrl} />
         </div>
       :( this.state.route === 'signin'
          ?<SignIn loadUser={this.loadUser} onRouteChange={this.onRouteChange}/>

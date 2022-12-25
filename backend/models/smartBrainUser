@@ -1,0 +1,15 @@
+const mongoose = require('mongoose');
+
+const smartBrainUser = new mongoose.Schema({
+	name: { type:String, required: true },
+	password: { type:String, required: true },
+	email: { type:String, required: true },
+	entries: { type:Number, default:0, required: true },
+	joined: { type: Date}
+});
+
+const userModel = mongoose.model("User", smartBrainUser);
+
+module.exports ={
+	userModel: userModel
+}

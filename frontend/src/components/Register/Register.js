@@ -1,4 +1,5 @@
 import React from 'react';
+import { URL } from '../../url';
 
 class Register extends React.Component {
 	constructor(props) {
@@ -20,7 +21,7 @@ class Register extends React.Component {
 		this.setState({password: event.target.value})
 	}
 	onSubmitSignIn = () => {
-		fetch('https://fierce-dawn-52592.herokuapp.com/register',{
+		fetch(URL +'register',{
 			method: 'post',
 			headers:{'Content-Type': 'application/json'},
 			body: JSON.stringify({
@@ -28,9 +29,15 @@ class Register extends React.Component {
 				password: this.state.password,
 				name: this.state.name
 			})
+		}).then((response) => {
+			if (response.ok) {
+				return response
+			} else {
+				throw `Looks like something went wrong. Status: ${response.status}`;
+			}
 		}).then(response => response.json())
 		.then( user =>{
-			if(user.id){
+			if(user._id){
 				this.props.loadUser(user);
 				this.props.onRouteChange('home');
 			}

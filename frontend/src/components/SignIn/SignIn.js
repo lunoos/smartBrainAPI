@@ -1,4 +1,5 @@
 import React from 'react';
+import { URL } from '../../url';
 
 class  SignIn extends React.Component  {
 	constructor(props){
@@ -16,20 +17,30 @@ class  SignIn extends React.Component  {
 	}
 
 	onSubmitSignIn = () => {
-		fetch('https://fierce-dawn-52592.herokuapp.com/signin',{
+		fetch(URL+'signin',{
 			method: 'post',
 			headers:{'Content-Type': 'application/json'},
 			body: JSON.stringify({
 				email: this.state.signInEmail,
 				password: this.state.signInPassword
 			})
+		}) .then((response) => {
+			if (response.ok) {
+				return response
+			} else {
+				throw `Looks like something went wrong. Status: ${response.status}`;
+			}
 		}).then(response => response.json())
-      .then(user => {
-        if(user.id){
-          this.props.loadUser(user);
-          this.props.onRouteChange('home');
-        }
-      })
+		.then(user => {
+			console.log("data: " + JSON.stringify(user._id))
+			    if(user._id){
+			      this.props.loadUser(user);
+			      this.props.onRouteChange('home');
+			    }
+			  })
+		.catch(error => {
+			console.log(error)
+		})
 		
 	}
 	render(){
